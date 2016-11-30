@@ -1,3 +1,4 @@
+import copy
 
 class qdict(dict):
     def __init__(self, *args, **kwargs):
@@ -20,3 +21,8 @@ class qdict(dict):
 
     def __setattr__(self, key, value):
         dict.__setitem__(self, key, value)
+
+    def __deepcopy__(self, memo):
+        return qdict(copy.deepcopy(dict(self)))
+
+
