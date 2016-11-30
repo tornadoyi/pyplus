@@ -21,16 +21,7 @@ import subprocess
 VERSION = '0.1'
 FULLVERSION = VERSION
 
-"""
-try:
-    pipe = subprocess.Popen(["git", "rev-parse", "--short", "HEAD"],
-                            stdout=subprocess.PIPE)
-    (so, serr) = pipe.communicate()
-    if pipe.returncode == 0:
-        FULLVERSION += "+%s" % so.strip().decode("utf-8")
-except:
-    pass
-"""
+
 
 setup(name='pyplus',
       version=VERSION,
