@@ -22,6 +22,9 @@ class qdict(dict):
     def __setattr__(self, key, value):
         dict.__setitem__(self, key, value)
 
+    def __copy__(self):
+        return self
+
     def __deepcopy__(self, memo):
         return qdict(copy.deepcopy(dict(self)))
 
