@@ -28,4 +28,20 @@ class qdict(dict):
     def __deepcopy__(self, memo):
         return qdict(copy.deepcopy(dict(self)))
 
+    def __getstate__(self):
+        return self
 
+    def __setstate__(self, state):
+        for (k, v) in state.items():
+            self.__setitem__(k, v)
+
+
+
+if __name__ == '__main__':
+    d = qdict(a=1, b=2, c=3)
+
+    # test pickle
+    import pickle
+    en = pickle.dumps(d)
+    de = pickle.loads(en)
+    print(de == d)
