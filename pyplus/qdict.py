@@ -2,6 +2,7 @@ import copy
 
 class qdict(dict):
     def __init__(self, *args, **kwargs):
+        dict.__init__(self)
         for arg in args:
             d = None
             if type(arg) == dict:
@@ -26,7 +27,8 @@ class qdict(dict):
         return self
 
     def __deepcopy__(self, memo):
-        return qdict(copy.deepcopy(dict(self)))
+        d = copy.deepcopy(dict(self))
+        return type(self)(**d)
 
     def __getstate__(self):
         return self
@@ -45,3 +47,10 @@ if __name__ == '__main__':
     en = pickle.dumps(d)
     de = pickle.loads(en)
     print(de == d)
+
+    # test inherit
+    class Test(qdict):
+        pass
+    t = Test(x=1, y=2)
+    ct = copy.deepcopy(t)
+    print(type(ct) == type(t))
