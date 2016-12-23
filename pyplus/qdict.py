@@ -3,19 +3,7 @@ import copy
 class qdict(dict):
     def __init__(self, *args, **kwargs):
         dict.__init__(self)
-        for arg in args:
-            d = None
-            if type(arg) == dict:
-                d = arg
-            elif hasattr(arg, '__dict__'):
-                d = arg.__dict__
-            else:
-                continue
-            for (k, v) in d.items():
-                self.__setitem__(k, v)
-
-        for (k, v) in kwargs.items():
-            self.__setitem__(k, v)
+        self.merge(*args, **kwargs)
 
     def __getattr__(self, item):
         return dict.get(self, item, None)
@@ -38,6 +26,21 @@ class qdict(dict):
             self.__setitem__(k, v)
 
 
+    def merge(self, *args, **kwargs):
+        for arg in args:
+            d = None
+            if type(arg) == dict:
+                d = arg
+            elif hasattr(arg, '__dict__'):
+                d = arg.__dict__
+            else:
+                continue
+            for (k, v) in d.items():
+                self.__setitem__(k, v)
+
+        for (k, v) in kwargs.items():
+            self.__setitem__(k, v)
+
 
 if __name__ == '__main__':
     d = qdict(a=1, b=2, c=3)
@@ -54,3 +57,5 @@ if __name__ == '__main__':
     t = Test(x=1, y=2)
     ct = copy.deepcopy(t)
     print(type(ct) == type(t))
+
+    
