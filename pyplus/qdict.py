@@ -29,7 +29,7 @@ class qdict(dict):
     def merge(self, *args, **kwargs):
         for arg in args:
             d = None
-            if type(arg) == dict:
+            if isinstance(arg, dict):
                 d = arg
             elif hasattr(arg, '__dict__'):
                 d = arg.__dict__
@@ -58,4 +58,7 @@ if __name__ == '__main__':
     ct = copy.deepcopy(t)
     print(type(ct) == type(t))
 
-    
+    # merge
+    empty = Test()
+    empty.merge(t)
+    print(empty == t)
