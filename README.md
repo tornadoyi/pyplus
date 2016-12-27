@@ -1,6 +1,6 @@
 # timeparse
 
-[timeparse](https://github.com/tornadoyi/timeparse) is parser for extract and format time word in chinese sentence.
+[pyplus](https://github.com/tornadoyi/pyplus) is extension libarary of python.
 
 
 ## Quick Install
@@ -10,50 +10,37 @@
     git clone https://github.com/tornadoyi/pyplus.git
     cd pyplus
     sudo python setup.py install
-
-    # setup timeparse
-    git clone https://github.com/tornadoyi/timeparse.git
-    cd timeparse
-    sudo python setup.py install
 ```
 
 
 # Document
 
-Easy to use
+QDict (use dict like lua table)
 ```python
-    # -*- coding: utf-8 -*-
-    import timeparse
-    times = timeparse.parse(u"16年3月2号到7号")
-    for t in times: print(t)
-    # (2016-03-02, 2016-03-07)
-```
-
-Part of sentence extractor
-```python
-    # -*- coding: utf-8 -*-
-    import timeparse
-    times = timeparse.parse(u"16年5月1号 16年3月2", pos=7, endpos=14)
-    for t in times: print(t) 
-    # (2016-03-02, 2016-03-02)
-```
-
-Use timecore to fix your current timestamp
-```python
-    # -*- coding: utf-8 -*-
     from pyplus import *
-    import timeparse
-    import time
-    
-    args = qdict(timecore=timeparse.TimeCore())
-    times = timeparse.parse(u"昨天", args=args)
-    for t in times: print(t)
-    # (2016-12-26, 2016-12-26)
+    d = qdict(a=1, b=2)
+    d.c = 3
+    print(d)
+    # {'a': 1, 'c': 3, 'b': 2}
+```
 
-    args.timecore.timestamp = time.time() - 24*3600
-    times = timeparse.parse(u"昨天", args=args)
-    for t in times: print(t)
-    # (2016-12-25, 2016-12-25)
+Enum
+```python
+    from pyplus import *
+    e = enum(a=1,b=2)
+```
+
+Singleton
+```python
+    from pyplus import *
+    @singleton
+    class Manager(object):
+        def __init__(self):
+            print("init once")
+        def unused(self): return
+        
+    Manager().unused()
+    Manager().unused()
 ```
 
 
