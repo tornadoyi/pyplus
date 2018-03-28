@@ -14,8 +14,6 @@
 # ----------------------------------------------------------------------------
 import os
 from setuptools import setup, find_packages, Command
-#from distutils.core import setup
-import subprocess
 
 # Define version information
 VERSION = '0.1'

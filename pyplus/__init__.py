@@ -1,3 +1,3 @@
-from base import *
+from .base import *
 
-import thread
+from .import thread

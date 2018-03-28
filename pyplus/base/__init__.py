@@ -1,4 +1,4 @@
 
-from enum import *
-from qdict import *
-from singleton import *
+from .enum import *
+from .qdict import *
+from .singleton import *

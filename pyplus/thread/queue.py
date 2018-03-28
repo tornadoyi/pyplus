@@ -110,7 +110,7 @@ class Queue(object):
             mutex.acquire()
             return f(*args, **kwargs)
 
-        except Exception, e:
+        except Exception as e:
             print(e)
 
         finally:

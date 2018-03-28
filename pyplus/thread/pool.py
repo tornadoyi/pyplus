@@ -1,8 +1,7 @@
-from fifo import FIFO
-from list import List
+from .fifo import FIFO
+from .list import List
 import threading
 import time
-from collections import namedtuple
 
 
 class Pool(object):
@@ -154,7 +153,7 @@ class Thread(threading.Thread):
                 try:
                     self._job.ret = self._job.func(*self._job.args, **self._job.kwargs)
 
-                except Exception, e:
+                except Exception as e:
                     self._job.error = e
 
             # call back
