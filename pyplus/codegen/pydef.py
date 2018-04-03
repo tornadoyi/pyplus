@@ -1,40 +1,29 @@
-from .layout import Block, Line
+from pyplus.codegen.decorator import Decorator
 
 
 
-class PyDef(Block):
-    def __init__(self, name, args, contents):
-        super(PyDef, self).__init__(None, None)
+class PyDef(Decorator):
+    def __reset__(self, name, args, contents):
         self.__name = name
         self.__args = args or []
         self.__contents = contents
-        self.__decorator = None
-
-    def __compile__(self):
-        self._headers = []
-
-        # decorator
-        if self.__decorator is not None:
-            if not isinstance(self.__decorator, (str, Line)):
-                raise Exception('invalid decorator type: {}, type must be str or Line'.format(type(self.__decorator)))
-            self._headers.append(self.__decorator)
 
         # method
         method = ''
         method += 'def {}('.format(self.__name)
         for i in range(len(self.__args)):
             method += self.__args[i]
-            if i < len(self.__args)-1: method += ', '
+            if i < len(self.__args) - 1: method += ', '
         method += '): '
-        self._headers.append(method)
 
-        # contents
-        self._layouts = self.__contents
+        # merge contents and header to same line
+        content, contents = '', []
+        if len(self.__contents) == 1 and type(self.__contents[0]) == str:
+            content = '{}'.format(self.__contents[0])
+        else:
+            contents = self.__contents
 
-        return super(PyDef, self).__compile__()
-
-
-    def decorator(self, s): self.__decorator = s; return self
+        super(PyDef, self).__reset__([], method+content, contents)
 
 
 
@@ -48,12 +37,11 @@ def member(name, *args):
     if len(args) == 1: return PyDef(name, ['self'], args[0])
     else: return PyDef(name, ['self']+args[0], args[1])
 
-def static(name, *args): return pydef(name, *args).decorator('@staticmethod')
+def static(name, *args): return pydef(name, *args).staticmethod()
 
-def getter(name, contents): return member(name, contents).decorator('@property')
+def getter(name, contents): return member(name, contents).property()
 
 def setter(name, *args):
-    decorator = '@{}.setter'.format(name)
     if len(args) == 0: raise Exception('must be define contents of def')
-    if len(args) == 1: return member(name, ['v'], args[0]).decorator(decorator)
-    else: return member(name, args[0], args[1]).decorator(decorator)
+    if len(args) == 1: return member(name, ['v'], args[0]).setter(name)
+    else: return member(name, args[0], args[1]).setter(name)
