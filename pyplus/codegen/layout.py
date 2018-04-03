@@ -35,6 +35,11 @@ class Line(Layout):
         for s in self.__texts: text += s
         return text
 
+    def replace(self, *args, **kwargs):
+        self.__texts = [t.replace(*args, **kwargs) for t in self.__texts]
+        return self
+
+
     def __reset__(self, texts):
         text_list = texts if isinstance(texts, (tuple, list)) else [texts]
         self.__texts = []
@@ -71,7 +76,10 @@ class Flat(Layout):
         for i in range(len(self.__layouts)):
             l = self.__layouts[i]
             if isinstance(l, Line):
-                if str(l) == tag: continue
+                if str(l) == tag:
+                    continue
+                else:
+                    l = l.replace(tag, '')
             else:
                 l.__clear__(tag)
             layouts.append(l)
