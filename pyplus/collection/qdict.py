@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import copy
 
 class qdict(dict):
@@ -42,23 +44,3 @@ class qdict(dict):
             self.__setitem__(k, v)
 
 
-if __name__ == '__main__':
-    d = qdict(a=1, b=2, c=3)
-
-    # test pickle
-    import pickle
-    en = pickle.dumps(d)
-    de = pickle.loads(en)
-    print(de == d)
-
-    # test inherit
-    class Test(qdict):
-        pass
-    t = Test(x=1, y=2)
-    ct = copy.deepcopy(t)
-    print(type(ct) == type(t))
-
-    # merge
-    empty = Test()
-    empty.merge(t)
-    print(empty == t)
