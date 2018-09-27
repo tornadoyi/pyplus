@@ -28,12 +28,12 @@ class PyDef(Decorator):
 
 
 def pydef(name, *args):
-    if len(args) == 0: raise Exception('must be define contents of def')
+    if len(args) == 0: raise Exception('must be define contents for def')
     if len(args) == 1: return PyDef(name, None, args[0])
     else: return PyDef(name, args[0], args[1])
 
 def member(name, *args):
-    if len(args) == 0: raise Exception('must be define contents of def')
+    if len(args) == 0: raise Exception('must be define contents for def')
     if len(args) == 1: return PyDef(name, ['self'], args[0])
     else: return PyDef(name, ['self']+args[0], args[1])
 

@@ -23,25 +23,9 @@ FULLVERSION = VERSION
 
 setup(name='pyplus',
       version=VERSION,
-      description="extension for python grammar",
-      #long_description=open('README.md').read(),
+      description="extension of python",
       author='yi gu',
       author_email='390512308@qq.com',
       license='License :: OSI Approved :: Apache Software License',
       packages=find_packages(),
-      classifiers=['Development Status :: 3 - Alpha',
-                   'Environment :: Console',
-                   'Environment :: Console :: Curses',
-                   'Environment :: Web Environment',
-                   'Intended Audience :: End Users/Desktop',
-                   'Intended Audience :: Developers',
-                   'Intended Audience :: Science/Research',
-                   'License :: OSI Approved :: Apache Software License',
-                   'Operating System :: POSIX',
-                   'Operating System :: MacOS :: MacOS X',
-                   'Programming Language :: Python :: 2',
-                   'Programming Language :: Python :: 3',
-                   'Topic :: Scientific/Engineering :: ' +
-                   'Artificial Intelligence',
-                   'Topic :: Scientific/Engineering :: Information Analysis',
-                   'Topic :: System :: Distributed Computing'])
+      )
