@@ -16,7 +16,7 @@ import os
 from setuptools import setup, find_packages, Command
 
 # Define version information
-VERSION = '0.1'
+VERSION = '0.2'
 FULLVERSION = VERSION
 
 
