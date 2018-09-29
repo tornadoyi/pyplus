@@ -3,7 +3,7 @@ from pyplus.codegen.decorator import Decorator
 
 
 class PyClass(Decorator):
-    def __reset__(self, name, parent, contents):
+    def _reset(self, name, parent, contents):
         self.__name = name
         self.__parent = parent or ''
         self.__contents = contents
@@ -11,7 +11,7 @@ class PyClass(Decorator):
         # method
         cls = 'class {}({}):'.format(self.__name, self.__parent)
 
-        super(PyClass, self).__reset__([], cls, self.__contents)
+        super(PyClass, self)._reset([], cls, self.__contents)
 
 
 

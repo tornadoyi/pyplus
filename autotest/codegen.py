@@ -1,70 +1,64 @@
 import os
 from pyplus import codegen as cg
 from pyplus import autotest
-from pyplus.importer import import_python
+from pyplus.importer import execute
+
+def lines2str(lines):
+    c = ''
+    for ln in lines: c += ln + '\n'
+    return c
 
 def test_codegen():
     node = autotest.add('codegen')
 
-    def gen():
-        layouts = [
-            cg.import_as('math', 'mt'),
-            '',
-            '',
-            cg.pydef('add', ['x', 'y'], [
-                'z = x + y',
-                'return z'
+    codes = cg.Code([
+        cg.pyimport('os'),
+        cg.import_as('copy', 'cp'),
+        cg.from_import('collections', 'defaultdict'),
+        cg.from_import_as('pyplus', 'codegen', 'cg'),
+        '',
+        '',
+        cg.pyclass('Add', [
+            cg.member('__init__', ['a', 'b'], [
+                'self.__a = a',
+                'self.__b = b',
             ]),
             '',
-            cg.pydef('sub', ['x', 'y'], [
-                'z = x - y',
-                'return z'
+            cg.member('__call__', ['*args', '**kwargs'], [
+                'return self.__a + self.__b'
             ]),
             '',
+            cg.getter('a', ['return self.__a']),
             '',
-            cg.pyclass('TestA', [
-                cg.member('__init__', ['x', 'y'], [
-                    'self._x = x',
-                    'self._y = y',
-                ]),
-                '',
-                cg.getter('x', ['return self._x']),
-                '',
-                cg.setter('x', ['self._x = v']),
-                '',
-                cg.member('calculate', ['return add(self._x, self._y)'])
-            ]),
+            cg.setter('a', ['self.__a = v']),
             '',
-            cg.pyclass('TestB', 'TestA', [
-                cg.member('calculate', ['return sub(self._x, self._y)'])
-            ]),
-            '',
-            '',
-            cg.B('if __name__ == "__main__":', [
-                'a = TestA(10, 5)',
-                'b = TestB(10, 5)',
-                'print(a.calculate())',
-                'print(b.calculate())',
-            ])
-        ]
+        ]),
+        '',
+        'f = Add({x}, {y})',
+        '{result} = f()',
+    ])
 
-        code = cg.generate(layouts)
-
-        with open('test_codegen.py', 'w') as f:
-            f.write(code)
-
-        module = import_python('test_codegen.py')
-        os.remove('test_codegen.py')
-        return module['TestA'](10, 5).calculate() == 15
+    def format():
+        nonlocal codes
+        lines = codes.format(x=1, y=2, result='result').compile()
+        return execute(lines2str(lines))['result'] == 3
 
 
-    node.add('gen', exec=gen)
+    def replace():
+        nonlocal codes
+        lines = codes.replace('{x}', '1').replace('{y}', '2').replace('{result}', 'result').compile()
+        return execute(lines2str(lines))['result'] == 3
+
+
+
+    node.add('format', exec=format)
+    node.add('replace', exec=replace)
     return node
 
 
-#test_codegen = test_codegen()
+test_codegen = test_codegen()
 
 
 if __name__ == '__main__':
-    pass#test_codegen()
+    test_codegen()
 

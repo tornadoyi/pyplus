@@ -3,7 +3,7 @@ from pyplus.codegen.decorator import Decorator
 
 
 class PyDef(Decorator):
-    def __reset__(self, name, args, contents):
+    def _reset(self, name, args, contents):
         self.__name = name
         self.__args = args or []
         self.__contents = contents
@@ -23,7 +23,7 @@ class PyDef(Decorator):
         else:
             contents = self.__contents
 
-        super(PyDef, self).__reset__([], method+content, contents)
+        super(PyDef, self)._reset([], method+content, contents)
 
 
 

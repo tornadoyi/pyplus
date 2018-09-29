@@ -12,6 +12,14 @@ def import_python(path):
     return m
 
 
+
+def execute(code):
+    m = {}
+    exec(code, m)
+    return m
+
+
+
 def import_object(path):
     """Load an object given its absolute object path, and return it.
 
