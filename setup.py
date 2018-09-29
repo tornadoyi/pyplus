@@ -12,20 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ----------------------------------------------------------------------------
-import os
-from setuptools import setup, find_packages, Command
+from os.path import dirname, join
+from setuptools import setup, find_packages
+
+# Project name
+NAME = 'pyplus'
 
 # Define version information
-VERSION = '0.2'
-FULLVERSION = VERSION
+with open(join(dirname(__file__), NAME + '/VERSION'), 'rb') as f:
+      VERSION = f.read().decode('ascii').strip()
 
 
 
-setup(name='pyplus',
+
+setup(name=NAME,
       version=VERSION,
       description="extension of python",
       author='yi gu',
       author_email='390512308@qq.com',
       license='License :: OSI Approved :: Apache Software License',
       packages=find_packages(),
+      include_package_data=True,
+      zip_safe=False,
+      python_requires='>=3.5',
       )
