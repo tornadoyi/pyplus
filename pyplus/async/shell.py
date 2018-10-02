@@ -95,10 +95,12 @@ class MutiProcesses(object):
         return True
 
     async def communicate(self, input=None):
+        if len(self.__ps) == 0: return []
         dones, _ = await asyncio.wait([p.communicate(input) for p in self.__ps])
         return [d.result() for d in dones]
 
     async def wait(self):
+        if len(self.__ps) == 0: return []
         dones, _ = await asyncio.wait([p.wait() for p in self.__ps])
         return [d.result() for d in dones]
 
