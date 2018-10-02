@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 from importlib import import_module
 
 
-def import_python(path):
+def import_file(path):
     with open(path, 'r') as f:
         code = f.read()
     m = {}

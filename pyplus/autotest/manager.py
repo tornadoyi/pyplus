@@ -4,7 +4,7 @@ import asyncio
 
 from pyplus import singleton
 from pyplus.autotest.node import Node
-from pyplus.importer import import_python
+from pyplus.importer import import_file
 
 @singleton
 class Manager(object):
@@ -43,7 +43,7 @@ class Manager(object):
                         continue
                     self.__push()
                     self.add(name)
-                    import_python(f)
+                    import_file(f)
                     self.__pop()
 
         _scan(path)
