@@ -60,7 +60,7 @@ class Process(object):
                 wait_time = None if self.__timeout is None else max(0, end_time - time.time())
                 code = await asyncio.wait_for(self.__p.wait(), wait_time, loop=self.__loop)
                 if code == 0: break
-                if i >= self.__retry:
+                if i < self.__retry:
                     self.__p = await self.__create_internal_subprocess(self.__cmd, self.__loop)
 
         except asyncio.TimeoutError:
