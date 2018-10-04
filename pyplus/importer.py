@@ -7,7 +7,7 @@ from importlib import import_module
 def import_file(path):
     with open(path, 'r') as f:
         code = f.read()
-    m = {}
+    m = {'__file__': path}
     exec(code, m)
     return m
 
