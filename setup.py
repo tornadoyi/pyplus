@@ -35,4 +35,12 @@ setup(name=NAME,
       include_package_data=True,
       zip_safe=False,
       python_requires='>=3.5',
+      install_requires = [
+            'argparse',
+      ],
+      entry_points = {
+            'console_scripts': [
+                  'fclean = pyplus.tools.file_cleaner:main',
+              ],
+      },
       )
