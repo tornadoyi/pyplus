@@ -20,27 +20,25 @@ def match(paths, atimeout=None, ctimeout=None, mtimeout=None, seed=None, pattern
     assert isinstance(paths, (tuple, list))
     if seed is None: seed = time.time()
     if patterns is None: patterns = ['i', '*']
-    if atimeout is None: atimeout = 0
-    if ctimeout is None: ctimeout = 0
-    if mtimeout is None: mtimeout = 0
 
     # match function
     def check_include(f):
-        at, ct, mt = os.path.getatime(f), os.path.getctime(f), os.path.getmtime(f)
-        if seed - at < atimeout or \
-            seed - ct < ctimeout or \
-            seed - mt < mtimeout:
-            return False
-
+        # check patterns
         for t, p in patterns:
             m = fnmatch.fnmatch(file_path, p)
             if t == 'i':
                 if not m: continue
-                return True
+                break
 
             else:
                 if not m: continue
                 return False
+
+        # check
+        at, ct, mt = os.path.getatime(f), os.path.getctime(f), os.path.getmtime(f)
+        if atimeout is not None and seed - at < atimeout: return False
+        if ctimeout is not None and seed - ct < ctimeout: return False
+        if mtimeout is not None and seed - mt < mtimeout: return False
 
         return True
 
