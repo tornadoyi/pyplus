@@ -1,6 +1,7 @@
 
 import time
 import asyncio
+import pickle
 
 class Process(object):
     def __init__(self, cmd, process, timeout, retry, loop):
@@ -147,7 +148,10 @@ async def _readlines(stream): return bytes.decode(await stream.read()).rstrip('\
 
 async def _readstr(stream): return bytes.decode(await stream.read())
 
-_INTERNAL_OUTPUT_FUNCS = {'lines': _readlines, 'str': _readstr}
+async def _readpickle(stream): return pickle.loads(await stream.read())
+
+
+_INTERNAL_OUTPUT_FUNCS = {'lines': _readlines, 'str': _readstr, 'pickle': _readpickle}
 
 def _get_output(output):
     default = _readlines
