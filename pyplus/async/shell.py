@@ -105,7 +105,7 @@ class MutiProcesses(object):
     def runnings(self):
         c = 0
         for p in self.__ps:
-            if not p.done(): c += 1
+            if not p.done: c += 1
         return c
 
     async def communicate(self, input=None):
