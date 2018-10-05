@@ -82,14 +82,8 @@ class Process(object):
 
 
 class MutiProcesses(object):
-    def __init__(self, processes, loop=None):
-        self.__loop = asyncio.get_event_loop() if loop is None else loop
-        self.__ps = []
-        self.__done_callbacks = []
-        self.__all_done_future = asyncio.Future()
-
-        # load processes
-        for p in processes: self.add_process(p)
+    def __init__(self, processes):
+        self.__ps = processes
 
 
     @property
@@ -98,15 +92,8 @@ class MutiProcesses(object):
     @property
     def done(self):
         for p in self.__ps:
-            if not p.done: return False
+            if not p.done(): return False
         return True
-
-    @property
-    def runnings(self):
-        c = 0
-        for p in self.__ps:
-            if not p.done: c += 1
-        return c
 
     async def communicate(self, input=None):
         if len(self.__ps) == 0: return []
@@ -123,34 +110,6 @@ class MutiProcesses(object):
     def terminate(self): return [p.terminate() for p in self.__ps]
 
     def kill(self): return [p.kill() for p in self.__ps]
-
-    def add_process(self, p):
-
-        async def __supervise(i):
-            p = self.__ps[i]
-            await p.wait()
-            self.__on_process_done(i)
-
-        # save and supervise
-        self.__ps.append(p)
-        self.__loop.create_task(__supervise(len(self.__ps)-1))
-
-        # reset done future
-        if self.__all_done_future.done(): self.__all_done_future = asyncio.Future()
-
-
-    def add_process_done_callback(self, cb): self.__done_callbacks.append(cb)
-
-    def remove_process_done_callback(self, cb): self.__done_callbacks = [c for c in self.__done_callbacks if cb != c]
-
-    def __on_process_done(self, i):
-        # callback
-        p = self.__ps[i]
-        for cb in self.__done_callbacks: cb(p)
-
-        # check all done
-        if self.done: self.__all_done_future.set_result(True)
-
 
 
 
@@ -211,45 +170,12 @@ async def run(cmd, timeout=None, retry=0, loop=None, output=None):
         return await output(p.stdout)
 
 
-async def run_all(cmds, timeout=None, retry=0, loop=None, output=None, max_parallel=None):
+async def run_all(cmds, timeout=None, retry=0, loop=None, output=None):
     output = _get_output(output)
-    loop = asyncio.get_event_loop() if loop is None else loop
-    if max_parallel is None: max_parallel = len(cmds)
-
-    mp = MutiProcesses([])
-    cur_index, fill_future = 0, asyncio.Future()
-
-    process_done_callback = None
-
-    async def _fill_processes():
-        nonlocal cur_index
-
-        max_fill = max_parallel - mp.runnings
-        dst_index = min(len(cmds), cur_index + max_fill)
-        for i in range(cur_index, dst_index):
-            mp.add_process(await Process.create(cmds[i], timeout, retry, loop))
-
-        # reset cur index
-        cur_index = dst_index
-        if cur_index >= len(cmds):
-            fill_future.set_result(True)
-            mp.remove_process_done_callback(process_done_callback)
-
-    process_done_callback = lambda *args: loop.create_task(_fill_processes())
-
-    # listen process done
-    mp.add_process_done_callback(process_done_callback)
-
-    # start init processes
-    await _fill_processes()
-
-    # wait fill
-    await fill_future
-
-    # wait all processes done
+    ps = []
+    for cmd in cmds: ps.append(await Process.create(cmd, timeout, retry, loop))
+    mp = MutiProcesses(ps)
     await mp.wait()
-
-    # collect results
     results = []
     for p in mp.proccesses:
         if p.returncode != 0:
@@ -257,8 +183,6 @@ async def run_all(cmds, timeout=None, retry=0, loop=None, output=None, max_paral
         else:
             results.append(await output(p.stdout))
     return results
-
-
 
 
 
