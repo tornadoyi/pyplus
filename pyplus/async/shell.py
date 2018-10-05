@@ -167,7 +167,7 @@ async def run(cmd, timeout=None, retry=0, loop=None, output=None):
 
 
 async def run_all(cmds, timeout=None, retry=0, loop=None, output=None):
-    output = _get_output()
+    output = _get_output(output)
     ps = []
     for cmd in cmds: ps.append(await Process.create(cmd, timeout, retry, loop))
     mp = MutiProcesses(ps)
