@@ -143,21 +143,31 @@ class CmdRunError(BaseException):
 
 
 
-async def readlines(stream): return bytes.decode(await stream.read()).rstrip('\n').split('\n')
+async def _readlines(stream): return bytes.decode(await stream.read()).rstrip('\n').split('\n')
 
-async def readstr(stream): return bytes.decode(await stream.read())
+async def _readstr(stream): return bytes.decode(await stream.read())
+
+_INTERNAL_OUTPUT_FUNCS = {'lines': _readlines, 'str': _readstr}
+
+def _get_output(output):
+    default = _readlines
+    if output is None: return default
+    if isinstance(output, str): return _INTERNAL_OUTPUT_FUNCS.get(output, default)
+    return output
 
 
-async def run(cmd, timeout=None, retry=0, loop=None, output=readlines):
+async def run(cmd, timeout=None, retry=0, loop=None, output=None):
+    output = _get_output(output)
     p = await Process.create(cmd, timeout, retry, loop)
     await p.wait()
     if p.returncode != 0:
-        return CmdRunError(p.cmd, p.returncode, await readstr(p.stderr), await readstr(p.stdout))
+        return CmdRunError(p.cmd, p.returncode, await _readstr(p.stderr), await _readstr(p.stdout))
     else:
         return await output(p.stdout)
 
 
-async def run_all(cmds, timeout=None, retry=0, loop=None, output=readlines):
+async def run_all(cmds, timeout=None, retry=0, loop=None, output=None):
+    output = _get_output()
     ps = []
     for cmd in cmds: ps.append(await Process.create(cmd, timeout, retry, loop))
     mp = MutiProcesses(ps)
@@ -165,7 +175,7 @@ async def run_all(cmds, timeout=None, retry=0, loop=None, output=readlines):
     results = []
     for p in mp.proccesses:
         if p.returncode != 0:
-            results.append(CmdRunError(p.cmd, p.returncode, await readstr(p.stderr), await readstr(p.stdout)))
+            results.append(CmdRunError(p.cmd, p.returncode, await _readstr(p.stderr), await _readstr(p.stdout)))
         else:
             results.append(await output(p.stdout))
     return results
