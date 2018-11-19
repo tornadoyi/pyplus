@@ -2,66 +2,69 @@
 import copy
 
 from pyplus import autotest
-from pyplus.framework import Messager
+from pyplus.framework import messager, NOTIFY_AFTER_CALL, NOTIFY_BEFORE_CALL
 
 
 def test_messager():
     node = autotest.add('messager')
 
-    class Data(object):
-        def __init__(self):
-            self.value = 0
-
     def test_notify():
-        class Sender(Messager):
-            def test(self): self.notify('test', Data())
+        @messager
+        class Sender():
+            def test(self, x): pass
 
         class Receiver(object):
-            def __init__(self, sender):
-                self.value = 0
-                sender.add_listener(self)
+            def test(self, x):
+                self.v = x
 
-            def test(self, data, *args, **kwargs):
-                self.value = data.value
-                data.value += 1
-
+        v = 100
         s = Sender()
-        r1 = Receiver(s)
-        r2 = Receiver(s)
-        s.test()
-        return (r1.value, r2.value) == (0, 1)
+        r = Receiver()
+        s.add_listener(r)
+        s.test(v)
+        return v == r.v
 
-
-    def del_listener():
-        class Sender(Messager):
-            def test(self): self.notify('test', Data())
+    def test_pass_messager():
+        @messager(pass_messager=True)
+        class Sender():
+            def test(self, x): self.v = x
 
         class Receiver(object):
-            def __init__(self, sender, max_call):
-                self.value = 0
-                self.max_call = max_call
-                self.sender = sender
-                sender.add_listener(self)
+            def test(self, x, messager):
+                self.v = messager.v
 
-            def test(self, data, *args, **kwargs):
-                self.value += 1
-                if self.value < self.max_call: return
-                self.sender.del_listener(self)
-
-        max_calls = [i for i in range(1, 11)]
+        v = 100
         s = Sender()
-        rs = [Receiver(s, i) for i in max_calls]
-        for i in range(100): s.test()
-        true_calls = 0
-        recv_calls = 0
-        for i in max_calls: true_calls += i
-        for r in rs: recv_calls += r.value
-        return true_calls == recv_calls
+        r = Receiver()
+        s.add_listener(r)
+        s.test(v)
+        return v == r.v
 
+
+    def call_before_and_after():
+        @messager(func=[('add', NOTIFY_AFTER_CALL), ('sub', NOTIFY_BEFORE_CALL)], pass_messager=True)
+        class Sender():
+            def __init__(self): self.v = 0
+            def add(self, x): self.v += x
+            def sub(self, x): self.v -= x
+
+        class Receiver(object):
+            def __init__(self): self.v = 0
+            def add(self, x, messager): self.v += messager.v
+            def sub(self, x, messager): self.v -= messager.v
+
+        v = 100
+        s = Sender()
+        r = Receiver()
+        s.add_listener(r)
+        s.add(v)
+        s.sub(v)
+        return r.v == 0
 
 
     node.add('notify', exec=test_notify)
-    node.add('del listener', exec=del_listener)
+    node.add('pass_messager', exec=test_pass_messager)
+    node.add('call_before_and_after', exec=call_before_and_after)
     return node
 
 
