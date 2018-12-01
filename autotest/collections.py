@@ -1,7 +1,7 @@
 
 import copy
 
-from pyplus.collection import qdict
+from pyplus.collections import qdict
 from pyplus import autotest
 
 
