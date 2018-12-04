@@ -1,7 +1,9 @@
-
+import os
 import time
+import pwd
 import asyncio
 import pickle
+from functools import partial
 
 class Process(object):
     def __init__(self, cmd, process, timeout, retry, loop):
@@ -14,9 +16,11 @@ class Process(object):
 
 
     @staticmethod
-    async def create(cmd, timeout=None, retry=0, loop=None):
+    async def create(cmd, timeout=None, retry=0, loop=None,
+                     user=None, preexec_fn=None):
         if loop is None: loop = asyncio.get_event_loop()
-        _p = await Process.__create_internal_subprocess(cmd, loop)
+        _p = await Process.__create_internal_subprocess(cmd, loop,
+                                                        user, preexec_fn)
         p = Process(cmd, _p, timeout, retry, loop)
         loop.create_task(p.__supervise())
         return p
@@ -72,12 +76,26 @@ class Process(object):
 
 
     @staticmethod
-    async def __create_internal_subprocess(cmd, loop):
+    async def __create_internal_subprocess(cmd, loop,
+                                           user=None, preexec_fn=None):
+
+        # process user and preexec_fn
+        def _preexec_func(user, preexec_fn):
+            if user is not None:
+                if isinstance(user, int):
+                    os.setuid(user)
+                elif isinstance(user, str):
+                    os.setuid(pwd.getpwnam(user).pw_uid)
+                else: raise Exception('Invalid user {}'.format(user))
+
+            if preexec_fn is not None: preexec_fn()
+
         return await  asyncio.create_subprocess_shell(cmd,
                                                       stdin=asyncio.subprocess.PIPE,
                                                       stdout=asyncio.subprocess.PIPE,
                                                       stderr=asyncio.subprocess.PIPE,
-                                                      loop=loop)
+                                                      loop=loop,
+                                                      preexec_fn = partial(_preexec_func, user, preexec_fn))
 
 
 
@@ -150,8 +168,15 @@ async def _readstr(stream): return bytes.decode(await stream.read())
 
 async def _readpickle(stream): return pickle.loads(await stream.read())
 
+async def _readsingle(stream): return bytes.decode(await stream.read()).replace('\n', '')
 
-_INTERNAL_OUTPUT_FUNCS = {'lines': _readlines, 'str': _readstr, 'pickle': _readpickle}
+_INTERNAL_OUTPUT_FUNCS = {
+    'str': _readstr,
+    str: _readstr,
+    'single': _readsingle,
+    'lines': _readlines,
+    'pickle': _readpickle
+}
 
 def _get_output(output):
     default = _readlines
@@ -160,9 +185,9 @@ def _get_output(output):
     return output
 
 
-async def run(cmd, timeout=None, retry=0, loop=None, output=None):
+async def run(cmd, timeout=None, retry=0, loop=None, output=None, **kwargs):
     output = _get_output(output)
-    p = await Process.create(cmd, timeout, retry, loop)
+    p = await Process.create(cmd, timeout, retry, loop, **kwargs)
     await p.wait()
     if p.returncode != 0:
         return CmdRunError(p.cmd, p.returncode, await _readstr(p.stderr), await _readstr(p.stdout))
@@ -170,10 +195,10 @@ async def run(cmd, timeout=None, retry=0, loop=None, output=None):
         return await output(p.stdout)
 
 
-async def run_all(cmds, timeout=None, retry=0, loop=None, output=None):
+async def run_all(cmds, timeout=None, retry=0, loop=None, output=None, **kwargs):
     output = _get_output(output)
     ps = []
-    for cmd in cmds: ps.append(await Process.create(cmd, timeout, retry, loop))
+    for cmd in cmds: ps.append(await Process.create(cmd, timeout, retry, loop, **kwargs))
     mp = MutiProcesses(ps)
     await mp.wait()
     results = []
