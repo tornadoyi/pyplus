@@ -9,7 +9,8 @@ class Process(object):
     def __init__(self, cmd, timeout=None, retry=0,
                  user=None, preexec_fn=None):
         self.__cmd = cmd
-        self.__p = Process.__create_internal_subprocess(cmd)
+        self.__p = Process.__create_internal_subprocess(cmd,
+                                                        user, preexec_fn)
         self.__timeout = timeout
         self.__retry = retry
         self.__start_time = time.time()
