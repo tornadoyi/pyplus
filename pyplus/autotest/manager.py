@@ -43,7 +43,7 @@ class Manager(object):
                         continue
                     self.__push()
                     self.add(name)
-                    import_file(f)
+                    import_file(os.path.join(path, f))
                     self.__pop()
 
         _scan(path)
