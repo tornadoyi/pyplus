@@ -1,9 +1,13 @@
+import os
 import subprocess
 import time
 import pickle
+import pwd
+from functools import partial
 
 class Process(object):
-    def __init__(self, cmd, timeout=None, retry=0):
+    def __init__(self, cmd, timeout=None, retry=0,
+                 user=None, preexec_fn=None):
         self.__cmd = cmd
         self.__p = Process.__create_internal_subprocess(cmd)
         self.__timeout = timeout
@@ -56,13 +60,26 @@ class Process(object):
 
 
     @staticmethod
-    def __create_internal_subprocess(cmd):
-         return subprocess.Popen(cmd,
-                                 shell=True,
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 )
+    def __create_internal_subprocess(cmd,
+                                     user=None, preexec_fn=None):
+        # process user and preexec_fn
+        def _preexec_func(user, preexec_fn):
+            if user is not None:
+                if isinstance(user, int):
+                    os.setuid(user)
+                elif isinstance(user, str):
+                    os.setuid(pwd.getpwnam(user).pw_uid)
+                else:
+                    raise Exception('Invalid user {}'.format(user))
+
+            if preexec_fn is not None: preexec_fn()
+            
+        return subprocess.Popen(cmd,
+                             shell=True,
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             preexec_fn=partial(_preexec_func, user, preexec_fn))
 
 
 
@@ -129,8 +146,16 @@ def _readstr(stream): return bytes.decode(stream.read())
 
 def _readpickle(stream): return pickle.loads(stream.read())
 
+def _readsingle(stream): return bytes.decode(stream.read()).replace('\n', '')
 
-_INTERNAL_OUTPUT_FUNCS = {'lines': _readlines, 'str': _readstr, 'pickle': _readpickle}
+_INTERNAL_OUTPUT_FUNCS = {
+    'str': _readstr,
+    str: _readstr,
+    'single': _readsingle,
+    'lines': _readlines,
+    'pickle': _readpickle
+}
+
 
 def _get_output(output):
     default = _readlines
@@ -139,9 +164,9 @@ def _get_output(output):
     return output
 
 
-def run(cmd, timeout=None, retry=0, output=None):
+def run(cmd, timeout=None, retry=0, output=None, **kwargs):
     output = _get_output(output)
-    p = Process(cmd, timeout, retry)
+    p = Process(cmd, timeout, retry, **kwargs)
     p.wait()
     if p.returncode != 0:
         return CmdRunError(p.cmd, p.returncode, _readstr(p.stderr),  _readstr(p.stdout))
@@ -149,10 +174,10 @@ def run(cmd, timeout=None, retry=0, output=None):
         return output(p.stdout)
 
 
-def run_all(cmds, timeout=None, retry=0, output=None):
+def run_all(cmds, timeout=None, retry=0, output=None, **kwargs):
     output = _get_output(output)
     ps = []
-    for cmd in cmds: ps.append(Process(cmd, timeout, retry))
+    for cmd in cmds: ps.append(Process(cmd, timeout, retry, **kwargs))
     mp = MutiProcesses(ps)
     mp.wait()
     results = []
