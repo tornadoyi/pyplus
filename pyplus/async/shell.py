@@ -16,11 +16,9 @@ class Process(object):
 
 
     @staticmethod
-    async def create(cmd, timeout=None, retry=0, loop=None,
-                     user=None, preexec_fn=None):
+    async def create(cmd, timeout=None, retry=0, loop=None, **kwargs):
         if loop is None: loop = asyncio.get_event_loop()
-        _p = await Process.__create_internal_subprocess(cmd, loop,
-                                                        user, preexec_fn)
+        _p = await Process.__create_internal_subprocess(cmd, loop, **kwargs)
         p = Process(cmd, _p, timeout, retry, loop)
         loop.create_task(p.__supervise())
         return p
@@ -76,26 +74,13 @@ class Process(object):
 
 
     @staticmethod
-    async def __create_internal_subprocess(cmd, loop,
-                                           user=None, preexec_fn=None):
-
-        # process user and preexec_fn
-        def _preexec_func(user, preexec_fn):
-            if user is not None:
-                if isinstance(user, int):
-                    os.setuid(user)
-                elif isinstance(user, str):
-                    os.setuid(pwd.getpwnam(user).pw_uid)
-                else: raise Exception('Invalid user {}'.format(user))
-
-            if preexec_fn is not None: preexec_fn()
-
+    async def __create_internal_subprocess(cmd, loop, preexec_fn=None):
         return await  asyncio.create_subprocess_shell(cmd,
                                                       stdin=asyncio.subprocess.PIPE,
                                                       stdout=asyncio.subprocess.PIPE,
                                                       stderr=asyncio.subprocess.PIPE,
                                                       loop=loop,
-                                                      preexec_fn = partial(_preexec_func, user, preexec_fn))
+                                                      preexec_fn = preexec_fn)
 
 
 

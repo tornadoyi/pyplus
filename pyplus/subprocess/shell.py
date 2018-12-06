@@ -6,10 +6,9 @@ import pwd
 from functools import partial
 
 class Process(object):
-    def __init__(self, cmd, timeout=None, retry=0,
-                 user=None, preexec_fn=None):
+    def __init__(self, cmd, timeout=None, retry=0, **kwargs):
         self.__cmd = cmd
-        self.__p = Process.__create_internal_subprocess(cmd)
+        self.__p = Process.__create_internal_subprocess(cmd, **kwargs)
         self.__timeout = timeout
         self.__retry = retry
         self.__start_time = time.time()
@@ -61,25 +60,13 @@ class Process(object):
 
     @staticmethod
     def __create_internal_subprocess(cmd,
-                                     user=None, preexec_fn=None):
-        # process user and preexec_fn
-        def _preexec_func(user, preexec_fn):
-            if user is not None:
-                if isinstance(user, int):
-                    os.setuid(user)
-                elif isinstance(user, str):
-                    os.setuid(pwd.getpwnam(user).pw_uid)
-                else:
-                    raise Exception('Invalid user {}'.format(user))
-
-            if preexec_fn is not None: preexec_fn()
-            
+                                     preexec_fn=None):
         return subprocess.Popen(cmd,
                              shell=True,
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
-                             preexec_fn=partial(_preexec_func, user, preexec_fn))
+                             preexec_fn=preexec_fn)
 
 
 
