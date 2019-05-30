@@ -27,8 +27,8 @@ class SingletonApplication(object):
 
         # exist
         self.__initialized = True
-        self.__fd = open(self.pid_file_path, 'w')
-        self.__fd.flush()
+        self.__fd = open(self.__pid_file_path, 'w')
+
         try:
             fcntl.lockf(self.__fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
@@ -39,16 +39,17 @@ class SingletonApplication(object):
         if self.__initialized:
             self.__pid = os.getpid()
             self.__fd.write('{}'.format(self.__pid))
+            self.__fd.flush()
         else:
-            with open(self.pid_file_path, 'r') as f:
+            with open(self.__pid_file_path, 'r') as f:
                self.__pid = int(f.read())
 
 
     def __del__(self):
         if self.initialized:
             fcntl.lockf(self.__fd, fcntl.LOCK_UN)
-            if os.path.isfile(self.pid_file_path):
-                os.unlink(self.pid_file_path)
+            if os.path.isfile(self.__pid_file_path):
+                os.unlink(self.__pid_file_path)
         self.__fd.close()
 
 
